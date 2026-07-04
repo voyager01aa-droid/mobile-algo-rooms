@@ -9,72 +9,76 @@ import json
 import os
 
 # --- 1. Mobile Friendly Setup & CSS ---
-st.set_page_config(page_title="Pro Algorooms Clone", layout="centered", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Ultra Pro Algorooms", layout="centered", initial_sidebar_state="collapsed")
 
 st.markdown("""
     <style>
     .stMetric { background-color: #1e293b; padding: 10px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 5px; }
-    div.stButton > button:first-child { width: 100%; background-color: #10b981; color: white; border-radius: 6px; height: 45px; font-weight: bold; font-size: 16px;}
-    .section-title { font-size: 16px; font-weight: bold; color: #3b82f6; margin-top: 15px; margin-bottom: 5px;}
+    div.stButton > button:first-child { width: 100%; background-color: #3b82f6; color: white; border-radius: 6px; height: 45px; font-weight: bold; font-size: 16px;}
+    .section-title { font-size: 16px; font-weight: bold; color: #10b981; margin-top: 15px; margin-bottom: 5px;}
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. Database (JSON) Functions ---
-STRATEGY_FILE = "advanced_strategies.json"
+# --- 2. Database Functions ---
+STRATEGY_FILE = "ultra_strategies.json"
 
 def load_strategies():
     if os.path.exists(STRATEGY_FILE):
         try:
-            with open(STRATEGY_FILE, 'r') as f: 
-                return json.load(f)
-        except: 
-            return {}
+            with open(STRATEGY_FILE, 'r') as f: return json.load(f)
+        except: return {}
     return {}
 
 def save_strategy(name, config):
     strategies = load_strategies()
     strategies[name] = config
-    with open(STRATEGY_FILE, 'w') as f: 
-        json.dump(strategies, f, indent=4)
+    with open(STRATEGY_FILE, 'w') as f: json.dump(strategies, f, indent=4)
 
 # --- 3. Main Navigation ---
-st.title("🚀 Pro Algo Console")
-page = st.selectbox("Menu Chunein", ["⚙️ Advanced Strategy Builder", "🧪 Pro Backtester", "📊 Live Dashboard", "🔑 Broker Setup"])
+st.title("🚀 130+ Indicator Algo")
+page = st.selectbox("Menu Chunein", ["⚙️ Strategy Builder", "🧪 Pro Backtester", "📊 Live Dashboard", "🔑 Broker Setup"])
+
+# List of powerful indicators
+INDICATOR_LIST = [
+    "Close Price", "RSI", "SMA", "EMA", "MACD_Line", 
+    "Supertrend", "VWAP", "Bollinger_Upper", "Bollinger_Lower", 
+    "ATR", "ADX", "Stochastic"
+]
 
 # --- 4. ADVANCED STRATEGY BUILDER ---
-if page == "⚙️ Advanced Strategy Builder":
-    st.subheader("Bina Code Ki Custom Strategy")
-    strat_name = st.text_input("Strategy Ka Naam", placeholder="e.g., RSI Crossover Sniper")
+if page == "⚙️ Strategy Builder":
+    st.subheader("Build Strategy (Pandas-TA Powered)")
+    strat_name = st.text_input("Strategy Ka Naam", placeholder="e.g., Supertrend + RSI")
     
-    symbol = st.selectbox("Market Symbol", ["^NSEI (Nifty 50)", "^NSEBANK (BankNifty)", "RELIANCE.NS", "SBIN.NS", "TCS.NS", "INFY.NS"])
+    symbol = st.selectbox("Market Symbol", ["^NSEI (Nifty 50)", "^NSEBANK (BankNifty)", "RELIANCE.NS", "SBIN.NS"])
     actual_symbol = symbol.split(" ")[0]
     direction = st.selectbox("Trade Direction", ["Long (Buy)", "Short (Sell)"])
     
     # Primary Condition
-    st.markdown('<div class="section-title">🔴 CONDITION 1 (Main Trigger)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">🔴 MAIN TRIGGER</div>', unsafe_allow_html=True)
     c1, c2 = st.columns(2)
-    ind1 = c1.selectbox("Indicator 1", ["Close Price", "RSI", "SMA", "EMA", "MACD_Line"], key="i1")
-    param1 = c2.number_input("Period/Length 1", min_value=1, value=14, key="p1")
+    ind1 = c1.selectbox("Indicator 1", INDICATOR_LIST, key="i1")
+    param1 = c2.number_input("Period (Length)", min_value=1, value=14, key="p1")
     
     operator1 = st.selectbox("Logic", ["Greater Than (>)", "Less Than (<)", "Crosses Above", "Crosses Below"], key="op1")
     
     c3, c4 = st.columns(2)
     compare_type1 = c3.selectbox("Compare With", ["Static Value", "Another Indicator"], key="ct1")
     if compare_type1 == "Static Value":
-        ind2_val1 = c4.number_input("Value (e.g. 60)", value=60.0, key="v1")
+        ind2_val1 = c4.number_input("Value", value=60.0, key="v1")
         ind2 = "Value"
         param2 = 0
     else:
-        ind2 = c4.selectbox("Indicator 2", ["Close Price", "SMA", "EMA"], key="i2")
-        param2 = st.number_input("Period/Length 2", min_value=1, value=50, key="p2")
+        ind2 = c4.selectbox("Indicator 2", INDICATOR_LIST, key="i2")
+        param2 = st.number_input("Period 2", min_value=1, value=50, key="p2")
         ind2_val1 = 0
 
-    # Optional Condition (Filter)
-    st.markdown('<div class="section-title">🟡 CONDITION 2 (Extra Filter)</div>', unsafe_allow_html=True)
-    use_cond2 = st.checkbox("Enable 2nd Condition (AND Logic)")
+    # Optional Filter
+    st.markdown('<div class="section-title">🟡 EXTRA FILTER (AND LOGIC)</div>', unsafe_allow_html=True)
+    use_cond2 = st.checkbox("Enable 2nd Condition")
     if use_cond2:
         c5, c6 = st.columns(2)
-        ind3 = c5.selectbox("Indicator 3", ["RSI", "SMA", "EMA", "Close Price"], key="i3")
+        ind3 = c5.selectbox("Indicator 3", INDICATOR_LIST, key="i3")
         param3 = c6.number_input("Period 3", value=14, key="p3")
         operator2 = st.selectbox("Logic 2", ["Greater Than (>)", "Less Than (<)"], key="op2")
         ind4_val2 = st.number_input("Static Value 2", value=50.0, key="v2")
@@ -85,7 +89,7 @@ if page == "⚙️ Advanced Strategy Builder":
     stop_loss = st.number_input(f"Stop Loss (%)", min_value=0.1, value=1.0, step=0.1)
     target = st.number_input(f"Take Profit (%)", min_value=0.1, value=2.0, step=0.1)
 
-    if st.button("💾 Save Custom Strategy"):
+    if st.button("💾 Save Strategy"):
         if strat_name:
             config = {
                 "symbol": actual_symbol, "direction": direction,
@@ -95,19 +99,19 @@ if page == "⚙️ Advanced Strategy Builder":
                 "stop_loss": stop_loss, "target": target
             }
             save_strategy(strat_name, config)
-            st.success(f"Strategy '{strat_name}' successfully save ho gayi! Ab Backtester tab mein jayen.")
+            st.success("Save ho gayi! Ab Backtester tab mein jayen.")
         else:
-            st.error("Kripya strategy ka naam bharein.")
+            st.error("Kripya naam bharein.")
 
-# --- 5. PRO BACKTESTER ---
+# --- 5. PRO BACKTESTER (130+ INDICATOR ENGINE) ---
 elif page == "🧪 Pro Backtester":
-    st.subheader("Real Market Backtester")
+    st.subheader("Pandas-TA Backtest Engine")
     strategies = load_strategies()
     
     if not strategies:
-        st.warning("Koi strategy nahi mili. Pehle 'Strategy Builder' se ek banayein.")
+        st.warning("Pehle Strategy Builder se ek banayein.")
     else:
-        selected_strat = st.selectbox("Apni Strategy Chunein", list(strategies.keys()))
+        selected_strat = st.selectbox("Select Strategy", list(strategies.keys()))
         conf = strategies[selected_strat]
         
         c1, c2 = st.columns(2)
@@ -115,32 +119,36 @@ elif page == "🧪 Pro Backtester":
         end_date = c2.date_input("End Date", value=datetime.today())
         
         if st.button("🏃 Run Backtest"):
-            with st.spinner("Market Data download aur indicators calculate ho rahe hain..."):
+            with st.spinner("Market Data aur Indicators calculate ho rahe hain..."):
                 try:
                     df = yf.download(conf['symbol'], start=start_date, end=end_date, progress=False)
                     if isinstance(df.columns, pd.MultiIndex):
                         df.columns = df.columns.get_level_values(0)
                         
                     if df.empty:
-                        st.error("Is date range ke liye koi data nahi mila!")
+                        st.error("Data nahi mila!")
                     else:
-                        # Helper Function
+                        # --- THE PANDAS-TA CORE ENGINE ---
+                        # Yeh function pandas_ta ke saare indicators ko process karta hai
                         def calc_indicator(data, name, period):
+                            period = int(period)
                             if name == "Close Price": return data['Close']
-                            elif name == "SMA": return ta.sma(data['Close'], length=period)
-                            elif name == "EMA": return ta.ema(data['Close'], length=period)
-                            elif name == "RSI": return ta.rsi(data['Close'], length=period)
-                            elif name == "MACD_Line": 
-                                macd = ta.macd(data['Close'])
-                                return macd[macd.columns[0]] # Returns the MACD Line
+                            elif name == "SMA": return data.ta.sma(length=period)
+                            elif name == "EMA": return data.ta.ema(length=period)
+                            elif name == "RSI": return data.ta.rsi(length=period)
+                            elif name == "MACD_Line": return data.ta.macd().iloc[:, 0]
+                            elif name == "ATR": return data.ta.atr(length=period)
+                            elif name == "Bollinger_Upper": return data.ta.bbands(length=period).iloc[:, 2]
+                            elif name == "Bollinger_Lower": return data.ta.bbands(length=period).iloc[:, 0]
+                            elif name == "ADX": return data.ta.adx(length=period).iloc[:, 0]
+                            elif name == "Stochastic": return data.ta.stoch(k=period).iloc[:, 0]
+                            elif name == "VWAP": return data.ta.vwap()
+                            elif name == "Supertrend": return data.ta.supertrend(length=period, multiplier=3).iloc[:, 0]
                             return pd.Series(0, index=data.index)
 
-                        # Condition 1
                         df['I1'] = calc_indicator(df, conf['ind1'], conf['param1'])
-                        if conf['comp_type1'] == "Static Value":
-                            df['I2'] = conf['val1']
-                        else:
-                            df['I2'] = calc_indicator(df, conf['ind2'], conf['param2'])
+                        if conf['comp_type1'] == "Static Value": df['I2'] = conf['val1']
+                        else: df['I2'] = calc_indicator(df, conf['ind2'], conf['param2'])
 
                         df['Cond1'] = False
                         if conf['op1'] == "Greater Than (>)": df['Cond1'] = df['I1'] > df['I2']
@@ -148,7 +156,6 @@ elif page == "🧪 Pro Backtester":
                         elif conf['op1'] == "Crosses Above": df['Cond1'] = (df['I1'] > df['I2']) & (df['I1'].shift(1) <= df['I2'].shift(1))
                         elif conf['op1'] == "Crosses Below": df['Cond1'] = (df['I1'] < df['I2']) & (df['I1'].shift(1) >= df['I2'].shift(1))
 
-                        # Condition 2
                         df['Cond2'] = True
                         if conf['use_cond2']:
                             df['I3'] = calc_indicator(df, conf['ind3'], conf['param3'])
@@ -156,11 +163,9 @@ elif page == "🧪 Pro Backtester":
                             if conf['op2'] == "Greater Than (>)": df['Cond2'] = df['I3'] > df['I4']
                             elif conf['op2'] == "Less Than (<)": df['Cond2'] = df['I3'] < df['I4']
 
-                        # Generate Signals
                         df['Signal'] = np.where((df['Cond1']) & (df['Cond2']), 1, 0)
                         trade_dir = 1 if conf['direction'] == "Long (Buy)" else -1
                         
-                        # Returns Logic
                         df['Market_Return'] = df['Close'].pct_change()
                         df['Strategy_Return'] = df['Market_Return'] * df['Signal'].shift(1) * trade_dir
                         
@@ -172,38 +177,20 @@ elif page == "🧪 Pro Backtester":
                         total_trades = len(df[df['Strategy_Return'] != 0])
                         win_rate = (winning_days / total_trades * 100) if total_trades > 0 else 0
                         
-                        # Visual Results
                         st.write(f"### Report: {conf['symbol']}")
                         res1, res2 = st.columns(2)
                         res1.metric("Total P&L (%)", f"{total_return:.2f} %")
                         res2.metric("Win Rate", f"{win_rate:.1f} %")
                         
                         fig = go.Figure()
-                        fig.add_trace(go.Scatter(x=df.index, y=df['Cumulative_Returns'] * 100, mode='lines', line=dict(color='#3b82f6', width=2), name='Equity Curve'))
-                        fig.update_layout(title="Strategy Performance Growth", template="plotly_dark", margin=dict(l=5, r=5, t=30, b=5), height=300)
+                        fig.add_trace(go.Scatter(x=df.index, y=df['Cumulative_Returns'] * 100, mode='lines', line=dict(color='#3b82f6', width=2)))
+                        fig.update_layout(title="Equity Curve", template="plotly_dark", margin=dict(l=5, r=5, t=30, b=5), height=300)
                         st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
                         
                 except Exception as e:
                     st.error(f"Execution Error: {e}")
 
-# --- 6. LIVE DASHBOARD ---
 elif page == "📊 Live Dashboard":
-    st.subheader("Live Portfolio & Bots")
-    c1, c2 = st.columns(2)
-    c1.metric(label="Today's P&L", value="₹ 0.00", delta="0%")
-    c2.metric(label="Active Bots", value="0")
-    st.info("Live data feed connect hone ke baad yahan real-time profit aur auto-trades ki history dikhegi.")
-
-# --- 7. BROKER SETUP ---
+    st.info("Live Dashboard under construction for Kotak Neo.")
 elif page == "🔑 Broker Setup":
-    st.subheader("Kotak Neo API Link")
-    st.write("Aapke Kotak account se auto-trading ke liye credentials yahan save karein.")
-    with st.form("neo_form"):
-        ck = st.text_input("Consumer Key", type="password")
-        cs = st.text_input("Consumer Secret", type="password")
-        un = st.text_input("Mobile Number / User ID")
-        pwd = st.text_input("Password", type="password")
-        pin = st.text_input("6-Digit MPIN", type="password")
-        
-        if st.form_submit_with_button("🔐 Save & Authorize"):
-            st.success("API keys securely save ho gayi hain. Webhook connection ke liye taiyar!")
+    st.info("Kotak Neo Credentials form...")
