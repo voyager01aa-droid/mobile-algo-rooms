@@ -4,11 +4,11 @@ import numpy as np
 import plotly.graph_objects as go
 from datetime import datetime
 import yfinance as yf
-import pandas_ta as ta
+import ta
 import json
 import os
 
-# --- 1. Mobile Friendly Setup & CSS ---
+# --- Mobile Friendly Setup ---
 st.set_page_config(page_title="Ultra Pro Algorooms", layout="centered", initial_sidebar_state="collapsed")
 
 st.markdown("""
@@ -19,7 +19,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. Database Functions ---
 STRATEGY_FILE = "ultra_strategies.json"
 
 def load_strategies():
@@ -34,27 +33,24 @@ def save_strategy(name, config):
     strategies[name] = config
     with open(STRATEGY_FILE, 'w') as f: json.dump(strategies, f, indent=4)
 
-# --- 3. Main Navigation ---
-st.title("🚀 130+ Indicator Algo")
+st.title("🚀 Advanced Algo Builder")
 page = st.selectbox("Menu Chunein", ["⚙️ Strategy Builder", "🧪 Pro Backtester", "📊 Live Dashboard", "🔑 Broker Setup"])
 
-# List of powerful indicators
+# Stable Indicators List
 INDICATOR_LIST = [
     "Close Price", "RSI", "SMA", "EMA", "MACD_Line", 
-    "Supertrend", "VWAP", "Bollinger_Upper", "Bollinger_Lower", 
-    "ATR", "ADX", "Stochastic"
+    "Bollinger_Upper", "Bollinger_Lower", "ATR", 
+    "ADX", "Stochastic_K", "CCI"
 ]
 
-# --- 4. ADVANCED STRATEGY BUILDER ---
 if page == "⚙️ Strategy Builder":
-    st.subheader("Build Strategy (Pandas-TA Powered)")
-    strat_name = st.text_input("Strategy Ka Naam", placeholder="e.g., Supertrend + RSI")
+    st.subheader("Bina Code Ki Custom Strategy")
+    strat_name = st.text_input("Strategy Ka Naam", placeholder="e.g., RSI + Bollinger Sniper")
     
     symbol = st.selectbox("Market Symbol", ["^NSEI (Nifty 50)", "^NSEBANK (BankNifty)", "RELIANCE.NS", "SBIN.NS"])
     actual_symbol = symbol.split(" ")[0]
     direction = st.selectbox("Trade Direction", ["Long (Buy)", "Short (Sell)"])
     
-    # Primary Condition
     st.markdown('<div class="section-title">🔴 MAIN TRIGGER</div>', unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     ind1 = c1.selectbox("Indicator 1", INDICATOR_LIST, key="i1")
@@ -73,7 +69,6 @@ if page == "⚙️ Strategy Builder":
         param2 = st.number_input("Period 2", min_value=1, value=50, key="p2")
         ind2_val1 = 0
 
-    # Optional Filter
     st.markdown('<div class="section-title">🟡 EXTRA FILTER (AND LOGIC)</div>', unsafe_allow_html=True)
     use_cond2 = st.checkbox("Enable 2nd Condition")
     if use_cond2:
@@ -103,9 +98,8 @@ if page == "⚙️ Strategy Builder":
         else:
             st.error("Kripya naam bharein.")
 
-# --- 5. PRO BACKTESTER (130+ INDICATOR ENGINE) ---
 elif page == "🧪 Pro Backtester":
-    st.subheader("Pandas-TA Backtest Engine")
+    st.subheader("Error-Free Backtest Engine")
     strategies = load_strategies()
     
     if not strategies:
@@ -128,22 +122,23 @@ elif page == "🧪 Pro Backtester":
                     if df.empty:
                         st.error("Data nahi mila!")
                     else:
-                        # --- THE PANDAS-TA CORE ENGINE ---
-                        # Yeh function pandas_ta ke saare indicators ko process karta hai
+                        # --- CRASH-FREE ENGINE ---
                         def calc_indicator(data, name, period):
                             period = int(period)
-                            if name == "Close Price": return data['Close']
-                            elif name == "SMA": return data.ta.sma(length=period)
-                            elif name == "EMA": return data.ta.ema(length=period)
-                            elif name == "RSI": return data.ta.rsi(length=period)
-                            elif name == "MACD_Line": return data.ta.macd().iloc[:, 0]
-                            elif name == "ATR": return data.ta.atr(length=period)
-                            elif name == "Bollinger_Upper": return data.ta.bbands(length=period).iloc[:, 2]
-                            elif name == "Bollinger_Lower": return data.ta.bbands(length=period).iloc[:, 0]
-                            elif name == "ADX": return data.ta.adx(length=period).iloc[:, 0]
-                            elif name == "Stochastic": return data.ta.stoch(k=period).iloc[:, 0]
-                            elif name == "VWAP": return data.ta.vwap()
-                            elif name == "Supertrend": return data.ta.supertrend(length=period, multiplier=3).iloc[:, 0]
+                            close = data['Close']
+                            
+                            if name == "Close Price": return close
+                            elif name == "SMA": return ta.trend.sma_indicator(close, window=period)
+                            elif name == "EMA": return ta.trend.ema_indicator(close, window=period)
+                            elif name == "RSI": return ta.momentum.rsi(close, window=period)
+                            elif name == "MACD_Line": return ta.trend.macd(close)
+                            elif name == "Bollinger_Upper": return ta.volatility.bollinger_hband(close, window=period)
+                            elif name == "Bollinger_Lower": return ta.volatility.bollinger_lband(close, window=period)
+                            elif name == "ATR": return ta.volatility.average_true_range(data['High'], data['Low'], close, window=period)
+                            elif name == "ADX": return ta.trend.adx(data['High'], data['Low'], close, window=period)
+                            elif name == "Stochastic_K": return ta.momentum.stoch(data['High'], data['Low'], close, window=period)
+                            elif name == "CCI": return ta.trend.cci(data['High'], data['Low'], close, window=period)
+                            
                             return pd.Series(0, index=data.index)
 
                         df['I1'] = calc_indicator(df, conf['ind1'], conf['param1'])
@@ -191,6 +186,6 @@ elif page == "🧪 Pro Backtester":
                     st.error(f"Execution Error: {e}")
 
 elif page == "📊 Live Dashboard":
-    st.info("Live Dashboard under construction for Kotak Neo.")
+    st.info("Live Dashboard under construction.")
 elif page == "🔑 Broker Setup":
     st.info("Kotak Neo Credentials form...")
